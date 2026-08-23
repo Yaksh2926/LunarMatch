@@ -1,0 +1,2 @@
+pair_id,source_path,reference_path,source_sensor,reference_sensor,source_product_id,reference_product_id,source_pixel_scale_m,reference_pixel_scale_m,source_sun_azimuth_deg,source_sun_elevation_deg,reference_sun_azimuth_deg,reference_sun_elevation_deg,control_points_path
+example_001,data/raw/ohrc/source.tif,data/raw/lro/reference.tif,OHRC,LRO_NAC,,,,,,,,,

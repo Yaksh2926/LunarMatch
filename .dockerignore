@@ -1,0 +1,16 @@
+# Docker build context exclusion list
+.git/
+.venv/
+.pytest_cache/
+.coverage
+coverage.xml
+outputs/
+brain/
+scratch/
+docs/
+tests/
+*.pyc
+*.pyo
+*.pyd
+*.tmp
+__pycache__/
