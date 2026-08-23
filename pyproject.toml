@@ -7,7 +7,7 @@ name = "lunarmatch"
 version = "0.1.0"
 description = "Multi-modal lunar image correspondence and registration"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = "==3.12.*"
 license = {text = "Proprietary until team selects a license"}
 dependencies = [
   "numpy>=1.26", "scipy>=1.11", "opencv-python>=4.8",
