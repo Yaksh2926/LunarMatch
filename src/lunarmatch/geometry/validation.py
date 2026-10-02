@@ -60,19 +60,21 @@ def check_matrix_plausibility(
     matrix: np.ndarray,
     model_type: str,
     allowed_scale: tuple[float, float] = (0.01, 100.0),
+    allow_reflection: bool = False,
 ) -> str | None:
     """Check if estimated 3x3 transformation matrix is physically plausible.
 
     Verifies:
     1. Matrix elements are finite.
     2. Matrix is non-singular.
-    3. Matrix preserves orientation (no mirror reflections, det > 0).
+    3. Matrix preserves orientation (no mirror reflections, det > 0, unless allowed).
     4. Matrix scale factor is within allowed_scale range.
 
     Args:
         matrix: 3x3 float64 transformation matrix mapping source to reference.
         model_type: Transformation model type ('similarity', 'affine', 'homography').
         allowed_scale: Tuple of (min_scale, max_scale).
+        allow_reflection: Whether reflection/mirroring is explicitly permitted.
 
     Returns:
         Failure reason string if matrix fails any plausibility check, else None.
@@ -104,12 +106,12 @@ def check_matrix_plausibility(
 
     # 2. Reflection check (orientation preservation)
     # For similarity and affine, det_2d > 0. If det_2d < 0, it is a mirror flip (reflection).
-    if det_2d <= 0.0:
+    if not allow_reflection and det_2d <= 0.0:
         return "reflection_detected"
 
     # 3. Scale plausibility check
-    # Scale factor S is sqrt(det_2d) for 2D area expansion ratio
-    scale_factor = float(np.sqrt(det_2d))
+    # Scale factor S is sqrt(abs(det_2d)) for 2D area expansion ratio
+    scale_factor = float(np.sqrt(abs(det_2d)))
     if scale_factor < min_scale or scale_factor > max_scale:
         return "scale_out_of_bounds"
 

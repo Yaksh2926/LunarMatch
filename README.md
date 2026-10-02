@@ -1,4 +1,4 @@
-# LunarMatch — SIH 2026 PS 26166
+# LunarMatch — Sub-Pixel Lunar Image Registration Suite
 
 Antigravity-ready starter repository for **multi-modal, sun-angle and scale-invariant lunar image correspondence** using Chandrayaan-2 OHRC, TMC-2, IIRS and reference imagery such as LRO NAC.
 

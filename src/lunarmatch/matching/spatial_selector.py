@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 import numpy as np
 from scipy.spatial import ConvexHull  # type: ignore[import-untyped]
@@ -278,3 +278,46 @@ def select_uniform_matches(
     return selector.select(
         matches=matches, image_bounds=image_bounds, valid_mask=valid_mask
     )
+
+
+class RegistrationQualityGate:
+    """Classifies registration results as WELL_CONSTRAINED vs UNDER_CONSTRAINED based on spatial coverage and inliers."""
+
+    def __init__(
+        self,
+        min_occupied_grid_fraction: float = 0.15,
+        min_convex_hull_coverage: float = 0.05,
+        min_inliers: int = 15,
+        max_rmse_px: float | None = 5.0,
+    ) -> None:
+        self.min_occupied_grid_fraction = min_occupied_grid_fraction
+        self.min_convex_hull_coverage = min_convex_hull_coverage
+        self.min_inliers = min_inliers
+        self.max_rmse_px = max_rmse_px
+
+    def evaluate(
+        self,
+        inlier_count: int,
+        occupied_grid_fraction: float,
+        convex_hull_coverage_fraction: float,
+        rmse_px: float | None = None,
+    ) -> tuple[Literal["WELL_CONSTRAINED", "UNDER_CONSTRAINED"], bool]:
+        """Evaluate spatial coverage and metrics.
+
+        Returns:
+            ("WELL_CONSTRAINED", True) if all spatial coverage and metric thresholds pass.
+            ("UNDER_CONSTRAINED", False) if spatial coverage is clustered or under-constrained.
+        """
+        coverage_passed = (
+            occupied_grid_fraction >= self.min_occupied_grid_fraction
+            and convex_hull_coverage_fraction >= self.min_convex_hull_coverage
+        )
+        inliers_passed = inlier_count >= self.min_inliers
+        rmse_passed = (self.max_rmse_px is None) or (rmse_px is not None and rmse_px <= self.max_rmse_px)
+
+        well_constrained = bool(coverage_passed and inliers_passed and rmse_passed)
+        status: Literal["WELL_CONSTRAINED", "UNDER_CONSTRAINED"] = (
+            "WELL_CONSTRAINED" if well_constrained else "UNDER_CONSTRAINED"
+        )
+        return status, coverage_passed
+

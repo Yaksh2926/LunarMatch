@@ -105,10 +105,16 @@ class ImagePyramid:
                 resized_mask_uint8 = cv2.resize(mask_uint8, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
                 resized_mask = resized_mask_uint8.astype(bool)
 
-                # Coordinate mapping: scale_x = w_orig / new_w, scale_y = h_orig / new_h
+                # Coordinate mapping mapping scaled coordinates (x_level, y_level) to original coordinates (x_orig, y_orig).
+                # Correct mapping for pixel centers under cv2.resize (INTER_AREA / INTER_NEAREST):
+                # x_orig = (x_level + 0.5) * scale_x - 0.5 = scale_x * x_level + 0.5 * (scale_x - 1.0)
                 scale_x = float(w_orig) / float(new_w)
                 scale_y = float(h_orig) / float(new_h)
-                level_mapping = CoordinateMapping.from_scale(scale_x, scale_y)
+                level_mapping = CoordinateMapping(np.array([
+                    [scale_x, 0.0, 0.5 * (scale_x - 1.0)],
+                    [0.0, scale_y, 0.5 * (scale_y - 1.0)],
+                    [0.0, 0.0, 1.0]
+                ], dtype=np.float64))
 
                 level = PyramidLevel(
                     level_idx=len(levels),

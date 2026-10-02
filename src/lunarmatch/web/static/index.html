@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LunarMatch — Scientific Lunar Image Registration Application</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #070b16;
+            --bg-panel: #0d1424;
+            --bg-card: rgba(18, 28, 50, 0.75);
+            --bg-card-hover: rgba(26, 40, 70, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(59, 130, 246, 0.4);
+            
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.35);
+            
+            --secondary: #8b5cf6;
+            --cyan: #06b6d4;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --rose: #ef4444;
+            
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 88% 82%, rgba(139, 92, 246, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Top Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(7, 11, 22, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .brand-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: #ffffff;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .engine-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.85rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 30px;
+            font-size: 0.82rem;
+            color: #34d399;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #34d399;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #34d399;
+        }
+
+        /* Container & Page Views */
+        .main-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .page-view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons & UI Elements */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-primary {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-outline-primary:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #60a5fa;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.65rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.35);
+        }
+
+        .badge-info {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.35);
+        }
+
+        /* Hero Section on Home */
+        .home-hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2.5rem;
+            align-items: center;
+            margin-bottom: 3.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .home-hero { grid-template-columns: 1fr; }
+        }
+
+        .hero-title {
+            font-size: 3.2rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-preview-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-active);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        .hero-preview-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 4-Step Explanation Bar */
+        .steps-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3.5rem;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .step-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .step-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+
+        .step-card p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        /* Latest Run Banner */
+        .latest-run-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-active);
+            border-radius: 18px;
+            padding: 1.75rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .latest-run-info h4 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .latest-run-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-badge-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .stat-badge-lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* REGISTER PAGE STYLES */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        .page-header p {
+            color: var(--text-sub);
+            font-size: 1.05rem;
+        }
+
+        .preset-bar {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .dual-drop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 860px) {
+            .dual-drop-grid { grid-template-columns: 1fr; }
+        }
+
+        .upload-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .upload-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .upload-card-header h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .drop-zone-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+
+        .drop-zone p {
+            font-size: 0.92rem;
+            color: var(--text-sub);
+            margin-bottom: 0.5rem;
+        }
+
+        .metadata-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: auto;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .meta-row:last-child { border-bottom: none; }
+        .meta-label { color: var(--text-muted); }
+        .meta-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #ffffff; }
+
+        /* Configuration Panel */
+        .config-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.75rem 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .config-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .config-toggles {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            cursor: pointer;
+        }
+
+        .action-submit-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 3rem;
+        }
+
+        /* PROGRESS TRACKER VIEW */
+        .progress-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-active);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+
+        .progress-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .stages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stage-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.25rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.95rem;
+        }
+
+        .stage-row.completed {
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.05);
+            color: #34d399;
+        }
+
+        .stage-row.active {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        /* RESULTS VIEW */
+        .results-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .viewer-container {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+
+        .viewer-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            gap: 0.5rem;
+        }
+
+        .viewer-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .viewer-tab.active {
+            color: white;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .viewer-body {
+            padding: 1.5rem;
+            min-height: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #04060c;
+        }
+
+        .viewer-body img {
+            max-width: 100%;
+            max-height: 550px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Results Grid Panels */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 860px) {
+            .results-grid { grid-template-columns: 1fr; }
+        }
+
+        .panel-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1.75rem;
+        }
+
+        .panel-box h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Data Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-color);
+            padding: 2rem 1.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand" onclick="navigateTo('home')">
+            <div class="brand-logo">LM</div>
+            <span class="brand-title">LunarMatch</span>
+        </div>
+        <div class="nav-menu">
+            <button class="nav-btn active" id="nav-home" onclick="navigateTo('home')">HOME</button>
+            <button class="nav-btn" id="nav-register" onclick="navigateTo('register')">REGISTER</button>
+            <button class="nav-btn" id="nav-results" onclick="navigateTo('results')">RESULTS</button>
+            <button class="nav-btn" id="nav-history" onclick="navigateTo('history')">HISTORY</button>
+            <button class="nav-btn" id="nav-benchmark" onclick="navigateTo('benchmark')">BENCHMARK</button>
+            <button class="nav-btn" id="nav-data" onclick="navigateTo('data')">DATA</button>
+            <button class="nav-btn" id="nav-docs" onclick="navigateTo('docs')">DOCS</button>
+        </div>
+        <div class="engine-status" id="engineStatusBadge">
+            <div class="pulse-dot"></div>
+            <span id="engineStatusText">● Engine Ready</span>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+
+        <!-- ========================================================= -->
+        <!-- 1. HOME VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-home" class="page-view active">
+            <div class="home-hero">
+                <div class="hero-left">
+                    <h1 class="hero-title">Lunar Image Registration<br>Made Simple.</h1>
+                    <p class="hero-subtitle">Automatically align lunar imagery across illumination, viewpoint, and scale differences using the LunarMatch registration engine.</p>
+                    <div class="hero-cta-group">
+                        <button class="btn btn-primary" onclick="navigateTo('register')">
+                            <span>+ New Registration</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadSamplePreset('ohrc_control')">
+                            <span>Try Real OHRC Data</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadSamplePreset('synthetic_demo')">
+                            <span>Try Demo</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <div class="hero-preview-box">
+                        <img src="/assets/hero.jpg" alt="Chandrayaan-2 Lunar Scanner Render">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4-Step Process -->
+            <div class="steps-bar">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <h3>Upload Imagery</h3>
+                    <p>Select or upload your source and reference lunar rasters (GeoTIFF / TIFF / IMG).</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <h3>Analyze & Preprocess</h3>
+                    <p>Auto-detect metadata, GSD resolution, sun angles, and apply structural contrast normalization.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <h3>Execute Matching</h3>
+                    <p>Pyramid scale search, feature matching, robust USAC-MAGSAC geometric verification.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">04</div>
+                    <h3>Validate & Export</h3>
+                    <p>Sub-pixel refinement, spatial coverage quality gate, warped GeoTIFF raster, and CSV match points.</p>
+                </div>
+            </div>
+
+            <!-- Latest Run Card -->
+            <div class="latest-run-card" id="latestRunCard">
+                <div class="latest-run-info">
+                    <h4>LATEST VALIDATED CONTROL EXPERIMENT <span class="badge badge-success">VALIDATED</span></h4>
+                    <p style="color:var(--text-sub); font-size:0.92rem;">Chandrayaan-2 OHRC South Pole Control (ch2_ohr_035044 ↔ ch2_ohr_015216)</p>
+                </div>
+                <div class="latest-run-stats">
+                    <div class="stat-badge-item">
+                        <span class="stat-badge-val" style="color:#34d399;">135</span>
+                        <span class="stat-badge-lbl">RANSAC Inliers</span>
+                    </div>
+                    <div class="stat-badge-item">
+                        <span class="stat-badge-val" style="color:#60a5fa;">1.472 px</span>
+                        <span class="stat-badge-lbl">Reprojection RMSE</span>
+                    </div>
+                    <div class="stat-badge-item">
+                        <span class="stat-badge-val" style="color:#a78bfa;">17.2%</span>
+                        <span class="stat-badge-lbl">Grid Coverage</span>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary" onclick="loadRunResult('historical_ohrc_control')">
+                        View Results &rarr;
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 2. REGISTER VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-register" class="page-view">
+            <div class="page-header">
+                <h1>New Image Registration</h1>
+                <p>Upload moving and fixed lunar rasters or select a pre-configured sample dataset.</p>
+            </div>
+
+            <!-- Sample Presets Bar -->
+            <div class="preset-bar">
+                <div>
+                    <span style="font-size:0.9rem; font-weight:600; color:var(--text-sub);">Try Sample Data:</span>
+                </div>
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadSamplePreset('ohrc_control')">
+                        <span>🛰️ [ OHRC → OHRC ] Real-data Control</span>
+                    </button>
+                    <button class="preset-btn" onclick="loadSamplePreset('ohrc_tmc')">
+                        <span>📐 [ OHRC → TMC-2 ] Cross-Sensor (20x)</span>
+                    </button>
+                    <button class="preset-btn" onclick="loadSamplePreset('synthetic_demo')">
+                        <span>🧪 [ Synthetic Demo ] Procedural Pair</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dual Drop / Upload Grid -->
+            <div class="dual-drop-grid">
+                <!-- Source (Moving) -->
+                <div class="upload-card">
+                    <div class="upload-card-header">
+                        <h3>SOURCE / MOVING IMAGE</h3>
+                        <span class="badge badge-info" id="srcSensorBadge">Not Selected</span>
+                    </div>
+                    <div class="drop-zone" id="srcDropZone" onclick="document.getElementById('srcFileInput').click()">
+                        <div class="drop-zone-icon">📥</div>
+                        <p><strong>Drop source image here</strong> or click to browse</p>
+                        <p style="font-size:0.8rem; color:var(--text-muted);">Supported: .TIF, .TIFF, .IMG, .PNG</p>
+                        <input type="file" id="srcFileInput" style="display:none;" onchange="handleFileUpload(event, 'source')">
+                    </div>
+                    <!-- Source Metadata Preview -->
+                    <div class="metadata-card" id="srcMetaBox">
+                        <div class="meta-row"><span class="meta-label">File:</span><span class="meta-val" id="srcMetaFile">None</span></div>
+                        <div class="meta-row"><span class="meta-label">Sensor:</span><span class="meta-val" id="srcMetaSensor">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Resolution (GSD):</span><span class="meta-val" id="srcMetaGsd">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Dimensions:</span><span class="meta-val" id="srcMetaDim">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Sun Elevation:</span><span class="meta-val" id="srcMetaSun">-</span></div>
+                    </div>
+                </div>
+
+                <!-- Reference (Fixed) -->
+                <div class="upload-card">
+                    <div class="upload-card-header">
+                        <h3>REFERENCE / FIXED IMAGE</h3>
+                        <span class="badge badge-info" id="refSensorBadge">Not Selected</span>
+                    </div>
+                    <div class="drop-zone" id="refDropZone" onclick="document.getElementById('refFileInput').click()">
+                        <div class="drop-zone-icon">📥</div>
+                        <p><strong>Drop reference image here</strong> or click to browse</p>
+                        <p style="font-size:0.8rem; color:var(--text-muted);">Supported: .TIF, .TIFF, .IMG, .PNG</p>
+                        <input type="file" id="refFileInput" style="display:none;" onchange="handleFileUpload(event, 'reference')">
+                    </div>
+                    <!-- Reference Metadata Preview -->
+                    <div class="metadata-card" id="refMetaBox">
+                        <div class="meta-row"><span class="meta-label">File:</span><span class="meta-val" id="refMetaFile">None</span></div>
+                        <div class="meta-row"><span class="meta-label">Sensor:</span><span class="meta-val" id="refMetaSensor">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Resolution (GSD):</span><span class="meta-val" id="refMetaGsd">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Dimensions:</span><span class="meta-val" id="refMetaDim">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Sun Elevation:</span><span class="meta-val" id="refMetaSun">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Options -->
+            <div class="config-panel">
+                <div class="config-header">
+                    <h3>REGISTRATION CONFIGURATION</h3>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button class="btn btn-secondary" id="cfgAutoBtn" onclick="toggleConfigMode('auto')" style="padding:0.4rem 0.8rem; font-size:0.85rem;">Automatic (Default)</button>
+                        <button class="btn btn-secondary" id="cfgAdvBtn" onclick="toggleConfigMode('adv')" style="padding:0.4rem 0.8rem; font-size:0.85rem;">Advanced</button>
+                    </div>
+                </div>
+
+                <div id="cfgAutoBox" class="config-toggles">
+                    <label class="toggle-label"><input type="checkbox" checked disabled> Illumination Normalization</label>
+                    <label class="toggle-label"><input type="checkbox" checked disabled> Multi-Scale Pyramid</label>
+                    <label class="toggle-label"><input type="checkbox" checked disabled> USAC-MAGSAC Robust Geometric Verification</label>
+                    <label class="toggle-label"><input type="checkbox" checked disabled> Spatial Grid Coverage Validation</label>
+                    <label class="toggle-label"><input type="checkbox" checked disabled> Sub-Pixel Refinement</label>
+                </div>
+
+                <div id="cfgAdvBox" style="display:none; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.3rem;">Representation</label>
+                        <select id="advRepr" style="width:100%; padding:0.5rem; background:#070b16; color:white; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="clahe">CLAHE (Contrast Equalized)</option>
+                            <option value="raw">Raw / Direct</option>
+                            <option value="gradient">Gradient Magnitude</option>
+                            <option value="edge">Edge Map</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.3rem;">Feature Backend</label>
+                        <select id="advBackend" style="width:100%; padding:0.5rem; background:#070b16; color:white; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="sift">SIFT (Scale-Invariant)</option>
+                            <option value="orb">ORB (Fast Binary)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-sub); display:block; margin-bottom:0.3rem;">Geometric Model</label>
+                        <select id="advModel" style="width:100%; padding:0.5rem; background:#070b16; color:white; border:1px solid var(--border-color); border-radius:8px;">
+                            <option value="homography">Homography (3x3 Projective)</option>
+                            <option value="affine">Affine (2x3 Transform)</option>
+                            <option value="similarity">Similarity (Scale+Rotate+Translate)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Run Button -->
+            <div class="action-submit-bar">
+                <button class="btn btn-primary" id="runRegBtn" onclick="submitRegistration()" style="padding:0.9rem 2.5rem; font-size:1.1rem;">
+                    <span>🚀 RUN REGISTRATION</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 3. PROGRESS VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-progress" class="page-view">
+            <div class="progress-box">
+                <div class="progress-header">
+                    <h2>LUNARMATCH REGISTRATION ENGINE</h2>
+                    <p style="color:var(--text-sub); margin-top:0.4rem;" id="progressPairSub">Processing pair...</p>
+                    <div style="margin-top:1rem; font-family:'JetBrains Mono'; color:var(--cyan);" id="progressElapsed">Elapsed: 0.00s</div>
+                </div>
+
+                <div class="stages-list" id="progressStagesList">
+                    <!-- Dynamic stage rows -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 4. RESULTS VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-results" class="page-view">
+            <div class="results-header-bar">
+                <div>
+                    <h1 id="resPairTitle">Registration Result</h1>
+                    <p style="color:var(--text-sub); font-size:0.95rem; margin-top:0.25rem;" id="resRunSubtitle">Run ID: -</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:1rem;">
+                    <span class="badge badge-success" id="resStatusBadge" style="font-size:1rem; padding:0.4rem 1rem;">VALIDATED</span>
+                    <button class="btn btn-secondary" onclick="navigateTo('register')">+ New Run</button>
+                </div>
+            </div>
+
+            <!-- Interactive Visual Viewer -->
+            <div class="viewer-container">
+                <div class="viewer-tabs">
+                    <button class="viewer-tab active" onclick="switchVisualTab('overlay')">Alignment Overlay</button>
+                    <button class="viewer-tab" onclick="switchVisualTab('matches')">Feature Matches</button>
+                    <button class="viewer-tab" onclick="switchVisualTab('inliers')">RANSAC Inliers</button>
+                    <button class="viewer-tab" onclick="switchVisualTab('spatial')">Spatial Distribution</button>
+                </div>
+                <div class="viewer-body" id="visualViewerBody">
+                    <img id="visualViewerImg" src="/assets/matching_hud.jpg" alt="Visual Alignment Result">
+                </div>
+            </div>
+
+            <!-- Metrics & Quality Assessment Grid -->
+            <div class="results-grid">
+                <!-- Metrics Panel -->
+                <div class="panel-box">
+                    <h3>QUANTITATIVE EVALUATION METRICS</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                        <div class="meta-row"><span class="meta-label">RANSAC Inliers:</span><span class="meta-val" id="resInliersVal" style="color:#34d399;">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Inlier Ratio:</span><span class="meta-val" id="resRatioVal">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Reprojection RMSE:</span><span class="meta-val" id="resRmseVal" style="color:#60a5fa;">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Grid Occupancy:</span><span class="meta-val" id="resGridVal">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Convex Hull Coverage:</span><span class="meta-val" id="resHullVal">-</span></div>
+                        <div class="meta-row"><span class="meta-label">Processing Time:</span><span class="meta-val" id="resRuntimeVal">-</span></div>
+                    </div>
+                </div>
+
+                <!-- Quality Assessment & Trustworthiness -->
+                <div class="panel-box">
+                    <h3>QUALITY ASSESSMENT & TRUST</h3>
+                    <div id="qualityAssessmentBox">
+                        <h4 style="font-size:1.05rem; margin-bottom:0.5rem; color:#34d399;" id="qaHeadline">Registration Geometrically Validated</h4>
+                        <p style="font-size:0.9rem; color:var(--text-sub); line-height:1.5; margin-bottom:1rem;" id="qaExplanation">-</p>
+                        <div id="qaChecksList" style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem;">
+                            <!-- Dynamic checks -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Points Table -->
+            <div class="panel-box" style="margin-bottom:2.5rem;">
+                <h3>SAMPLE INLIER MATCH CORRESPONDENCES</h3>
+                <div style="max-height:260px; overflow-y:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Source (X, Y)</th>
+                                <th>Reference (X, Y)</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="matchesTableBody">
+                            <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No match data loaded</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Export Downloads Bar -->
+            <div class="panel-box">
+                <h3>DOWNLOAD RESULT FILES</h3>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap;" id="downloadsList">
+                    <!-- Dynamic download buttons -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 5. HISTORY VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-history" class="page-view">
+            <div class="page-header">
+                <h1>Registration Run History</h1>
+                <p>Browse previous registration runs and verified real-data experiments.</p>
+            </div>
+            <div class="panel-box">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Pair Name</th>
+                            <th>Status</th>
+                            <th>Inliers</th>
+                            <th>RMSE</th>
+                            <th>Coverage</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- Dynamic history rows -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 6. BENCHMARK VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-benchmark" class="page-view">
+            <div class="page-header">
+                <h1>Multi-Pair Benchmark Summary</h1>
+                <p>Factual, verified benchmark data recorded across real and synthetic test pairs.</p>
+            </div>
+            <div class="panel-box">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pair Name / Sensors</th>
+                            <th>Raw Matches</th>
+                            <th>RANSAC Inliers</th>
+                            <th>Inlier Ratio</th>
+                            <th>RMSE</th>
+                            <th>Grid Occupancy</th>
+                            <th>Hull Coverage</th>
+                            <th>Quality Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="benchmarkTableBody">
+                        <!-- Dynamic benchmark rows -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 7. DATA SOURCES VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-data" class="page-view">
+            <div class="page-header">
+                <h1>Supported Payloads & Data Sources</h1>
+                <p>Mission optical payloads and reference datasets supported by the LunarMatch engine.</p>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.75rem;">
+                <div class="panel-box">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                        <h4>Chandrayaan-2 OHRC</h4>
+                        <span class="badge badge-success">VALIDATED</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-sub); line-height:1.5; margin-bottom:1rem;">
+                        Orbiter High Resolution Camera (0.25 m/px). Verified control pair registration achieved 135 inliers and 1.472 px RMSE.
+                    </p>
+                    <a href="https://chmapbrowse.issdc.gov.in/" target="_blank" style="color:var(--cyan); font-size:0.85rem; text-decoration:none; font-weight:600;">ISSDC Pradan Portal &rarr;</a>
+                </div>
+
+                <div class="panel-box">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                        <h4>Chandrayaan-2 TMC-2</h4>
+                        <span class="badge badge-warning">EXPERIMENTAL</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-sub); line-height:1.5; margin-bottom:1rem;">
+                        Terrain Mapping Camera-2 (5.0 m/px). Cross-sensor pairing with OHRC introduces a 20× GSD gap; under-constrained in strict quality tests.
+                    </p>
+                    <a href="https://chmapbrowse.issdc.gov.in/" target="_blank" style="color:var(--cyan); font-size:0.85rem; text-decoration:none; font-weight:600;">ISSDC Pradan Portal &rarr;</a>
+                </div>
+
+                <div class="panel-box">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                        <h4>Chandrayaan-2 IIRS</h4>
+                        <span class="badge badge-info">ADAPTER AVAILABLE</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-sub); line-height:1.5; margin-bottom:1rem;">
+                        Imaging Infra-Red Spectrometer (80 m/px hyperspectral). Data loading adapter implemented; flight cross-registration pending.
+                    </p>
+                    <a href="https://chmapbrowse.issdc.gov.in/" target="_blank" style="color:var(--cyan); font-size:0.85rem; text-decoration:none; font-weight:600;">ISSDC Pradan Portal &rarr;</a>
+                </div>
+
+                <div class="panel-box">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.75rem;">
+                        <h4>NASA LRO NAC</h4>
+                        <span class="badge badge-info">REFERENCE ARCHIVE</span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-sub); line-height:1.5; margin-bottom:1rem;">
+                        Lunar Reconnaissance Orbiter Narrow Angle Camera (0.5–2.0 m/px). High-resolution reference imagery for cross-mission geodetic control.
+                    </p>
+                    <a href="https://quickmap.lroc.im-ldi.com/" target="_blank" style="color:var(--cyan); font-size:0.85rem; text-decoration:none; font-weight:600;">LROC QuickMap Portal &rarr;</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- 8. DOCS VIEW -->
+        <!-- ========================================================= -->
+        <section id="view-docs" class="page-view">
+            <div class="page-header">
+                <h1>Technical Architecture & Documentation</h1>
+                <p>Engineering specification and pipeline mathematical models.</p>
+            </div>
+            <div class="panel-box" style="margin-bottom:2rem;">
+                <h3 style="margin-bottom:1rem;">PIPELINE EXECUTION FLOW</h3>
+                <p style="font-size:0.95rem; color:var(--text-sub); line-height:1.6; margin-bottom:1rem;">
+                    1. <strong>Raster I/O & Metadata Extraction</strong>: Read PDS/GeoTIFF raster, extract GSD, CRS, and sun azimuth/elevation.<br>
+                    2. <strong>Illumination & Contrast Normalization</strong>: CLAHE adaptive equalization for harsh lunar shadowing.<br>
+                    3. <strong>Image Pyramid & Scale Search</strong>: Multi-scale hypothesis testing bridging resolution disparities.<br>
+                    4. <strong>Feature Detection & Descriptor Matching</strong>: SIFT/ORB keypoints with mutual nearest-neighbor matching.<br>
+                    5. <strong>USAC-MAGSAC Verification</strong>: Robust 3x3 homography matrix estimation with degeneracy checks.<br>
+                    6. <strong>Spatial Quality Gate & Sub-Pixel Refinement</strong>: Grid occupancy and ECC patch refinement.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p><strong>LunarMatch</strong> — Multi-Modal Lunar Image Registration Engine v0.1.0</p>
+        <p style="margin-top:0.3rem;">Scientific Image Processing Suite</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State variables
+        let currentSourcePath = "";
+        let currentReferencePath = "";
+        let currentVisuals = {};
+        let activePollInterval = null;
+
+        // Navigation Router
+        function navigateTo(viewId) {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            const targetView = document.getElementById('view-' + viewId);
+            const targetNav = document.getElementById('nav-' + viewId);
+
+            if (targetView) targetView.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (viewId === 'history') loadRunsHistory();
+            if (viewId === 'benchmark') loadBenchmark();
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            checkEngineStatus();
+            loadRunsHistory();
+        });
+
+        async function checkEngineStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                if (data.status === 'READY') {
+                    document.getElementById('engineStatusText').textContent = '● Engine Ready';
+                }
+            } catch (e) {
+                document.getElementById('engineStatusText').textContent = '○ Engine Offline';
+                document.getElementById('engineStatusBadge').style.borderColor = 'rgba(239,68,68,0.3)';
+                document.getElementById('engineStatusBadge').style.color = '#f87171';
+            }
+        }
+
+        // Load Sample Preset
+        async function loadSamplePreset(presetId) {
+            try {
+                navigateTo('register');
+                const res = await fetch('/api/samples');
+                const data = await res.json();
+                const sample = data.samples.find(s => s.id === presetId);
+                if (sample) {
+                    currentSourcePath = sample.source_path;
+                    currentReferencePath = sample.reference_path;
+
+                    // Trigger metadata detection for both
+                    detectAndDisplayMeta(sample.source_path, 'source');
+                    detectAndDisplayMeta(sample.reference_path, 'reference');
+                }
+            } catch (e) {
+                alert('Could not load preset: ' + e);
+            }
+        }
+
+        // Handle File Upload
+        async function handleFileUpload(event, role) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/registration/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await res.json();
+                if (data.status === 'SUCCESS') {
+                    if (role === 'source') {
+                        currentSourcePath = data.file_path;
+                        renderMetadata(data.metadata, 'source');
+                    } else {
+                        currentReferencePath = data.file_path;
+                        renderMetadata(data.metadata, 'reference');
+                    }
+                } else {
+                    alert('Upload failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Upload error: ' + e);
+            }
+        }
+
+        async function detectAndDisplayMeta(filePath, role) {
+            try {
+                const res = await fetch('/api/metadata/detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ file_path: filePath }),
+                });
+                const data = await res.json();
+                renderMetadata(data, role);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderMetadata(meta, role) {
+            const prefix = role === 'source' ? 'src' : 'ref';
+            document.getElementById(prefix + 'MetaFile').textContent = meta.file_name || 'Selected';
+            document.getElementById(prefix + 'MetaSensor').textContent = meta.sensor || 'Generic';
+            document.getElementById(prefix + 'MetaGsd').textContent = meta.gsd_x ? `${meta.gsd_x} m/px` : 'N/A';
+            document.getElementById(prefix + 'MetaDim').textContent = meta.width ? `${meta.width} × ${meta.height} px` : '-';
+            document.getElementById(prefix + 'MetaSun').textContent = meta.sun_elevation_deg ? `${meta.sun_elevation_deg}°` : 'N/A';
+            document.getElementById(prefix + 'SensorBadge').textContent = meta.sensor || 'Loaded';
+        }
+
+        function toggleConfigMode(mode) {
+            if (mode === 'adv') {
+                document.getElementById('cfgAdvBox').style.display = 'grid';
+                document.getElementById('cfgAdvBtn').classList.add('btn-primary');
+                document.getElementById('cfgAutoBtn').classList.remove('btn-primary');
+            } else {
+                document.getElementById('cfgAdvBox').style.display = 'none';
+                document.getElementById('cfgAutoBtn').classList.add('btn-primary');
+                document.getElementById('cfgAdvBtn').classList.remove('btn-primary');
+            }
+        }
+
+        // Submit Registration
+        async function submitRegistration() {
+            if (!currentSourcePath || !currentReferencePath) {
+                alert('Please select both a Source (Moving) Image and a Reference (Fixed) Image first.');
+                return;
+            }
+
+            const advRepr = document.getElementById('advRepr').value;
+            const advBackend = document.getElementById('advBackend').value;
+            const advModel = document.getElementById('advModel').value;
+
+            const payload = {
+                source_path: currentSourcePath,
+                reference_path: currentReferencePath,
+                config: {
+                    representation: advRepr,
+                    feature_backend: advBackend,
+                    geometric_model: advModel,
+                }
+            };
+
+            try {
+                document.getElementById('runRegBtn').disabled = true;
+                const res = await fetch('/api/registration/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (data.run_id) {
+                    navigateTo('progress');
+                    startProgressPolling(data.run_id);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to start registration'));
+                    document.getElementById('runRegBtn').disabled = false;
+                }
+            } catch (e) {
+                alert('Registration launch error: ' + e);
+                document.getElementById('runRegBtn').disabled = false;
+            }
+        }
+
+        // Poll Progress
+        function startProgressPolling(runId) {
+            if (activePollInterval) clearInterval(activePollInterval);
+
+            activePollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/registration/status/' + runId);
+                    const job = await res.json();
+
+                    document.getElementById('progressPairSub').textContent = `Run ID: ${runId}`;
+                    document.getElementById('progressElapsed').textContent = `Elapsed: ${job.elapsed_seconds || 0}s`;
+
+                    const stagesList = document.getElementById('progressStagesList');
+                    stagesList.innerHTML = '';
+
+                    if (job.stages) {
+                        job.stages.forEach((stg, idx) => {
+                            const row = document.createElement('div');
+                            row.className = 'stage-row ' + (stg.status === 'COMPLETED' ? 'completed' : (stg.status === 'ACTIVE' ? 'active' : ''));
+                            row.innerHTML = `
+                                <span>${stg.status === 'COMPLETED' ? '✓' : (stg.status === 'ACTIVE' ? '●' : '○')} ${stg.name}</span>
+                                <span class="badge ${stg.status === 'COMPLETED' ? 'badge-success' : (stg.status === 'ACTIVE' ? 'badge-info' : 'badge-warning')}">${stg.status}</span>
+                            `;
+                            stagesList.appendChild(row);
+                        });
+                    }
+
+                    if (job.status === 'COMPLETED' || job.status === 'LIMITED' || job.status === 'FAILED') {
+                        clearInterval(activePollInterval);
+                        document.getElementById('runRegBtn').disabled = false;
+                        setTimeout(() => {
+                            loadRunResult(runId);
+                        }, 500);
+                    }
+                } catch (e) {
+                    console.error('Polling error: ', e);
+                }
+            }, 500);
+        }
+
+        // Load and Display Result
+        async function loadRunResult(runId) {
+            try {
+                const res = await fetch('/api/registration/result/' + runId);
+                const data = await res.json();
+
+                navigateTo('results');
+
+                document.getElementById('resPairTitle').textContent = data.manifest ? `Registration Result: ${data.manifest.pair_id || 'Pair'}` : 'Registration Result';
+                document.getElementById('resRunSubtitle').textContent = `Run ID: ${runId}`;
+
+                const qa = data.quality_assessment || {};
+                const badge = document.getElementById('resStatusBadge');
+                badge.textContent = qa.status || 'PROCESSED';
+                badge.className = 'badge ' + (qa.status === 'VALIDATED' ? 'badge-success' : (qa.status === 'LIMITED' ? 'badge-warning' : 'badge-danger'));
+
+                // Metrics
+                const m = data.metrics || {};
+                document.getElementById('resInliersVal').textContent = `${m.inlier_count || 0} inliers`;
+                document.getElementById('resRatioVal').textContent = m.inlier_ratio ? `${(m.inlier_ratio * 100).toFixed(1)}%` : 'N/A';
+                document.getElementById('resRmseVal').textContent = m.rmse_px ? `${m.rmse_px.toFixed(3)} px` : 'N/A';
+                document.getElementById('resGridVal').textContent = m.occupied_grid_fraction ? `${(m.occupied_grid_fraction * 100).toFixed(1)}%` : 'N/A';
+                document.getElementById('resHullVal').textContent = m.convex_hull_coverage_fraction ? `${(m.convex_hull_coverage_fraction * 100).toFixed(1)}%` : 'N/A';
+                document.getElementById('resRuntimeVal').textContent = m.runtime_seconds ? `${m.runtime_seconds.toFixed(2)} s` : '-';
+
+                // Quality Assessment Text
+                document.getElementById('qaHeadline').textContent = qa.headline || '';
+                document.getElementById('qaHeadline').style.color = qa.status === 'VALIDATED' ? '#34d399' : (qa.status === 'LIMITED' ? '#fbbf24' : '#f87171');
+                document.getElementById('qaExplanation').textContent = qa.explanation || '';
+
+                const checksBox = document.getElementById('qaChecksList');
+                checksBox.innerHTML = '';
+                if (qa.checks) {
+                    qa.checks.forEach(chk => {
+                        const item = document.createElement('div');
+                        item.style.display = 'flex';
+                        item.style.justifyContent = 'space-between';
+                        item.innerHTML = `
+                            <span>${chk.passed ? '✓' : '⚠'} ${chk.name} (${chk.target})</span>
+                            <span class="code-font" style="color:${chk.passed ? '#34d399' : '#fbbf24'}; font-weight:600;">${chk.observed}</span>
+                        `;
+                        checksBox.appendChild(item);
+                    });
+                }
+
+                // Visuals
+                currentVisuals = data.visuals || {};
+                switchVisualTab('overlay');
+
+                // Matches Table
+                const tbody = document.getElementById('matchesTableBody');
+                tbody.innerHTML = '';
+                if (data.matches_sample && data.matches_sample.length > 0) {
+                    data.matches_sample.forEach(pt => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${pt.id}</td>
+                            <td class="code-font">(${pt.source_x}, ${pt.source_y})</td>
+                            <td class="code-font">(${pt.reference_x}, ${pt.reference_y})</td>
+                            <td class="code-font">${pt.score}</td>
+                            <td><span class="badge ${pt.inlier ? 'badge-success' : 'badge-danger'}">${pt.inlier ? 'INLIER' : 'OUTLIER'}</span></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No match point rows available</td></tr>';
+                }
+
+                // Downloads
+                const dlBox = document.getElementById('downloadsList');
+                dlBox.innerHTML = '';
+                if (data.downloads) {
+                    for (const [fname, furl] of Object.entries(data.downloads)) {
+                        const btn = document.createElement('a');
+                        btn.className = 'btn btn-secondary';
+                        btn.style.fontSize = '0.85rem';
+                        btn.href = furl;
+                        btn.download = fname;
+                        btn.innerHTML = `<span>💾 Download ${fname}</span>`;
+                        dlBox.appendChild(btn);
+                    }
+                }
+            } catch (e) {
+                alert('Could not load run result: ' + e);
+            }
+        }
+
+        function switchVisualTab(tabKey) {
+            document.querySelectorAll('.viewer-tab').forEach(t => t.classList.remove('active'));
+            const tabs = {
+                'overlay': 0,
+                'matches': 1,
+                'inliers': 2,
+                'spatial': 3
+            };
+            const tabBtns = document.querySelectorAll('.viewer-tab');
+            if (tabBtns[tabs[tabKey]]) tabBtns[tabs[tabKey]].classList.add('active');
+
+            const imgEl = document.getElementById('visualViewerImg');
+            if (currentVisuals[tabKey]) {
+                imgEl.src = currentVisuals[tabKey];
+            } else if (currentVisuals['overlay']) {
+                imgEl.src = currentVisuals['overlay'];
+            } else {
+                imgEl.src = '/assets/matching_hud.jpg';
+            }
+        }
+
+        // Load History Table
+        async function loadRunsHistory() {
+            try {
+                const res = await fetch('/api/runs');
+                const data = await res.json();
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = '';
+
+                if (data.runs && data.runs.length > 0) {
+                    data.runs.forEach(r => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="code-font" style="font-size:0.82rem;">${r.timestamp || '-'}</td>
+                            <td><strong>${r.pair_type || r.source_name}</strong></td>
+                            <td><span class="badge ${r.status === 'VALIDATED' ? 'badge-success' : (r.status === 'LIMITED' ? 'badge-warning' : 'badge-danger')}">${r.status}</span></td>
+                            <td class="code-font">${r.inliers || 0}</td>
+                            <td class="code-font">${r.rmse_px ? r.rmse_px.toFixed(3) + ' px' : 'N/A'}</td>
+                            <td class="code-font">${r.grid_occupancy ? (r.grid_occupancy * 100).toFixed(1) + '%' : '-'}</td>
+                            <td><button class="btn btn-secondary" style="padding:0.3rem 0.7rem; font-size:0.8rem;" onclick="loadRunResult('${r.run_id}')">View Result &rarr;</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">No runs recorded yet</td></tr>';
+                }
+            } catch (e) {
+                console.error('History load error: ', e);
+            }
+        }
+
+        // Load Benchmark Table
+        async function loadBenchmark() {
+            try {
+                const res = await fetch('/api/benchmark');
+                const data = await res.json();
+                const tbody = document.getElementById('benchmarkTableBody');
+                tbody.innerHTML = '';
+
+                if (data.benchmark && data.benchmark.length > 0) {
+                    data.benchmark.forEach(b => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${b.pair_name}</strong><br><span style="font-size:0.8rem; color:var(--text-sub);">${b.sensors}</span></td>
+                            <td class="code-font">${b.raw_matches}</td>
+                            <td class="code-font" style="color:#34d399; font-weight:700;">${b.inliers}</td>
+                            <td class="code-font">${b.inlier_ratio}</td>
+                            <td class="code-font">${b.rmse}</td>
+                            <td class="code-font">${b.grid_occupancy}</td>
+                            <td class="code-font">${b.hull_coverage}</td>
+                            <td><span class="badge ${b.quality_status === 'VALIDATED' ? 'badge-success' : (b.quality_status === 'LIMITED' ? 'badge-warning' : 'badge-danger')}">${b.quality_status}</span></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                console.error('Benchmark load error: ', e);
+            }
+        }
+    </script>
+</body>
+</html>

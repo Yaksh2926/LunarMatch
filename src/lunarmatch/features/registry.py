@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from lunarmatch.features.learned import LearnedMatcherAdapter
+from lunarmatch.features.learned import LearnedLoFTRBackend, LearnedMatcherAdapter
 from lunarmatch.features.orb import ORBFeatureBackend
 from lunarmatch.features.protocol import FeatureBackend
 from lunarmatch.features.sift import SIFTFeatureBackend
@@ -13,6 +13,7 @@ _BACKEND_REGISTRY: dict[str, Callable[[FeaturesConfig | None], FeatureBackend]] 
     "orb": lambda cfg: ORBFeatureBackend(config=cfg),
     "sift": lambda cfg: SIFTFeatureBackend(config=cfg),
     "learned_lightglue": lambda cfg: LearnedMatcherAdapter(config=cfg),
+    "learned_loftr": lambda cfg: LearnedLoFTRBackend(config=cfg),
 }
 
 

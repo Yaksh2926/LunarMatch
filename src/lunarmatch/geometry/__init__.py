@@ -1,4 +1,3 @@
-"""Geometry transformations, verification, sub-pixel refinement, and coordinate mapping for LunarMatch."""
 from lunarmatch.geometry.coordinate_mapping import CoordinateMapping
 from lunarmatch.geometry.subpixel import (
     SubpixelRefinementResult,

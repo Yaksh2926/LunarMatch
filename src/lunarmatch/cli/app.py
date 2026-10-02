@@ -266,5 +266,30 @@ def generate_synthetic_cmd(
         raise typer.Exit(code=1) from exc
 
 
+@app.command("serve")
+def serve_cmd(
+    port: Annotated[
+        int,
+        typer.Option(
+            "--port",
+            "-p",
+            help="Port to bind the LunarMatch web application server.",
+        ),
+    ] = int(os.getenv("PORT", "8000")),
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host",
+            "-h",
+            help="Host interface address to bind.",
+        ),
+    ] = "0.0.0.0",
+) -> None:
+    """Launch the interactive LunarMatch web application server."""
+    from lunarmatch.web.server import run_server
+
+    run_server(port=port, host=host)
+
+
 if __name__ == "__main__":
     app()

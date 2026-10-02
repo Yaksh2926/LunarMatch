@@ -85,6 +85,7 @@ class GeometricVerifier:
         confidence: float = 0.999,
         max_iterations: int = 10000,
         allowed_scale: tuple[float, float] = (0.01, 100.0),
+        allow_reflection: bool = False,
     ) -> None:
         if config is not None:
             self._model = config.model
@@ -93,6 +94,7 @@ class GeometricVerifier:
             self._confidence = config.confidence
             self._max_iterations = config.max_iterations
             self._allowed_scale = config.allowed_scale
+            self._allow_reflection = config.allow_reflection
         else:
             self._model = model
             self._robust_method = robust_method
@@ -100,6 +102,7 @@ class GeometricVerifier:
             self._confidence = confidence
             self._max_iterations = max_iterations
             self._allowed_scale = allowed_scale
+            self._allow_reflection = allow_reflection
 
     def verify(
         self,
@@ -217,7 +220,9 @@ class GeometricVerifier:
                 inlier_count = int(np.count_nonzero(inlier_mask))
 
         # 6. Matrix plausibility check (singularity, reflection, scale)
-        plaus_fail = check_matrix_plausibility(final_matrix, self._model, self._allowed_scale)
+        plaus_fail = check_matrix_plausibility(
+            final_matrix, self._model, self._allowed_scale, allow_reflection=self._allow_reflection
+        )
         if plaus_fail is not None:
             return GeometricVerificationResult(
                 success=False,
@@ -274,6 +279,7 @@ def verify_matches(
     confidence: float = 0.999,
     max_iterations: int = 10000,
     allowed_scale: tuple[float, float] = (0.01, 100.0),
+    allow_reflection: bool = False,
     seed: int = 42,
 ) -> GeometricVerificationResult:
     """Convenience function to perform robust geometric verification on point matches."""
@@ -285,5 +291,6 @@ def verify_matches(
         confidence=confidence,
         max_iterations=max_iterations,
         allowed_scale=allowed_scale,
+        allow_reflection=allow_reflection,
     )
     return verifier.verify(matches=matches, seed=seed)

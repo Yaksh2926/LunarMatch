@@ -1,4 +1,9 @@
-"""Geometry-preserving preprocessing and modality-invariant structural representations."""
+from lunarmatch.preprocessing.illumination_normalizer import (
+    IlluminationAlignmentResult,
+    IlluminationNormalizer,
+    compute_footprint_overlap,
+    compute_illumination_shadow_offset,
+)
 from lunarmatch.preprocessing.normalization import (
     apply_clahe,
     apply_denoise,
@@ -20,12 +25,16 @@ from lunarmatch.preprocessing.representations import (
 
 __all__ = [
     "REPRESENTATIONS",
+    "IlluminationAlignmentResult",
+    "IlluminationNormalizer",
     "PreprocessingResult",
     "apply_clahe",
     "apply_denoise",
     "compute_clahe_representation",
     "compute_edge_representation",
+    "compute_footprint_overlap",
     "compute_gradient_representation",
+    "compute_illumination_shadow_offset",
     "compute_phase_representation",
     "compute_raw_contrast",
     "create_preprocessing_quicklook",

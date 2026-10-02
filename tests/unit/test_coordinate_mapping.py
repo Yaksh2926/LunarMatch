@@ -120,3 +120,19 @@ def test_serialization() -> None:
 
     reconstructed = CoordinateMapping.from_dict(data)
     assert reconstructed == crop_map
+
+
+def test_pyramid_center_convention() -> None:
+    """Verify that the coordinate mapping matches cv2.resize pixel-center convention."""
+    scale_x, scale_y = 5.0 / 3.0, 5.0 / 3.0
+    mapping = CoordinateMapping(np.array([
+        [scale_x, 0.0, 0.5 * (scale_x - 1.0)],
+        [0.0, scale_y, 0.5 * (scale_y - 1.0)],
+        [0.0, 0.0, 1.0]
+    ], dtype=np.float64))
+
+    # Pixel center at (1.0, 1.0) maps to (2.0, 2.0)
+    pt = np.array([[1.0, 1.0]], dtype=np.float64)
+    mapped = mapping.apply(pt)
+    np.testing.assert_allclose(mapped, np.array([[2.0, 2.0]], dtype=np.float64), atol=1e-7)
+

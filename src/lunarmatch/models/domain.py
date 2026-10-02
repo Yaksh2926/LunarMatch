@@ -381,6 +381,12 @@ class RegistrationMetrics(BaseModel):
     occupied_grid_fraction: float = Field(ge=0.0, le=1.0)
     convex_hull_coverage_fraction: float = Field(ge=0.0, le=1.0)
     count_uniformity_cv: float | None = Field(default=None, ge=0.0)
+    spatial_coverage_status: Literal["WELL_CONSTRAINED", "UNDER_CONSTRAINED"] = Field(
+        default="UNDER_CONSTRAINED", description="Spatial coverage constraint status."
+    )
+    spatial_coverage_passed: bool = Field(
+        default=False, description="True if spatial coverage clears minimum grid fraction & hull area thresholds."
+    )
     runtime_seconds: float = Field(ge=0.0)
     warnings: list[str] = Field(default_factory=list)
 

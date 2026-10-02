@@ -1,7 +1,12 @@
+from lunarmatch.features.finetune import CalibrationConfig, LoFTRConfidenceCalibrator
 from lunarmatch.features.learned import (
+    LearnedLoFTRBackend,
+    LearnedLoFTRMatcher,
     LearnedMatcherAdapter,
     compute_weight_checksum,
+    is_kornia_available,
     is_torch_available,
+    require_kornia,
     require_torch,
 )
 from lunarmatch.features.orb import ORBFeatureBackend
@@ -17,9 +22,13 @@ from lunarmatch.features.sift import SIFTFeatureBackend
 from lunarmatch.features.tiling import TileInfo, plan_tiles
 
 __all__ = [
+    "CalibrationConfig",
     "FeatureBackend",
     "ImagePyramid",
+    "LearnedLoFTRBackend",
+    "LearnedLoFTRMatcher",
     "LearnedMatcherAdapter",
+    "LoFTRConfidenceCalibrator",
     "ORBFeatureBackend",
     "PyramidLevel",
     "SIFTFeatureBackend",
@@ -27,9 +36,11 @@ __all__ = [
     "compute_weight_checksum",
     "generate_scale_hypotheses",
     "get_feature_backend",
+    "is_kornia_available",
     "is_torch_available",
     "list_feature_backends",
     "plan_tiles",
     "register_feature_backend",
+    "require_kornia",
     "require_torch",
 ]

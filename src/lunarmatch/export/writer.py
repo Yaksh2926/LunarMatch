@@ -134,6 +134,7 @@ def export_registered_products(
     overwrite: bool = False,
     export_geojson: bool = True,
     stage_timings: dict[str, float] | None = None,
+    hypotheses_diagnostics: list[dict[str, Any]] | None = None,
 ) -> dict[str, Path]:
     """Export all registration artifacts atomically into output_dir.
 
@@ -147,6 +148,7 @@ def export_registered_products(
         overwrite: If True, overwrite existing files; if False, raise FileExistsError.
         export_geojson: If True, export GeoJSON files when CRS/transform permit.
         stage_timings: Optional dict of per-stage execution durations.
+        hypotheses_diagnostics: Optional list of diagnostics for all evaluated scale hypotheses.
 
     Returns:
         Dict mapping artifact keys ('manifest', 'metrics', 'transform', 'matches', 'registered') to Paths.
@@ -202,6 +204,8 @@ def export_registered_products(
         "stage_timings_seconds": stage_timings or {},
         "warnings": manifest.metrics.warnings,
     }
+    if hypotheses_diagnostics is not None:
+        diag_data["hypotheses_diagnostics"] = hypotheses_diagnostics
     _atomic_json_write(diagnostics_path, diag_data)
     exported_files["diagnostics"] = diagnostics_path
 

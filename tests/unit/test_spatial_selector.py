@@ -166,3 +166,34 @@ def test_spatial_selector_class_with_config():
     assert res.provenance["grid_rows"] == 4
     assert res.provenance["grid_cols"] == 4
     assert res.provenance["max_matches_per_cell"] == 10
+
+
+def test_registration_quality_gate_clustered_inlier_fixture():
+    """Test RegistrationQualityGate correctly flags Phase 1 audit clustered-inlier case as UNDER_CONSTRAINED.
+
+    Phase 1 Audit OHRC<->TMC-2 classical SIFT result:
+      - 4 inliers (low)
+      - occupied_grid_fraction = 0.016 (1.6% = 1/64 cells)
+      - convex_hull_coverage_fraction = 0.01 (1.0%)
+      - reprojection_rmse = 0.9224 px (passing low RMSE)
+    Assert gate evaluates to UNDER_CONSTRAINED and False coverage pass.
+    """
+    from lunarmatch.matching.spatial_selector import RegistrationQualityGate
+
+    gate = RegistrationQualityGate(
+        min_occupied_grid_fraction=0.15,
+        min_convex_hull_coverage=0.05,
+        min_inliers=15,
+        max_rmse_px=5.0,
+    )
+
+    status, passed = gate.evaluate(
+        inlier_count=4,
+        occupied_grid_fraction=0.016,
+        convex_hull_coverage_fraction=0.01,
+        rmse_px=0.9224,
+    )
+
+    assert status == "UNDER_CONSTRAINED"
+    assert passed is False
+

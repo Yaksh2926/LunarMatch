@@ -1,0 +1,62 @@
+run:
+  seed: 42
+  output_dir: outputs/run
+  overwrite: false
+io:
+  source_band: 1
+  reference_band: 1
+  max_megapixels_in_memory: 256
+  nodata_policy: metadata_or_nan
+preprocess:
+  representation: gradient
+  percentile_clip: [1.0, 99.0]
+  clahe_clip_limit: 2.0
+  denoise_sigma: 0.8
+pyramid:
+  scale_aware_matching: true
+  metadata_scale_prior: true
+  metadata_scale_uncertainty_octaves: 1.0
+  log2_scale_min: -4
+  log2_scale_max: 4
+  levels_per_octave: 2
+features:
+  backend: sift
+  max_keypoints: 30000
+  tile_size: 2048
+  tile_overlap: 128
+matching:
+  ratio_threshold: 0.80
+  mutual: true
+  max_descriptor_distance: null
+geometry:
+  model: affine
+  robust_method: usac_magsac
+  reprojection_threshold_px: 3.0
+  confidence: 0.999
+  max_iterations: 10000
+  allowed_scale: [0.01, 100.0]
+  allow_reflection: false
+coverage:
+  grid_rows: 8
+  grid_cols: 8
+  max_matches_per_cell: 20
+  min_occupied_fraction: 0.40
+subpixel:
+  method: ecc_patch
+  patch_radius: 15
+  max_iterations: 50
+  epsilon: 0.0001
+  max_shift_px: 3.0
+  min_quality: 0.2
+export:
+  write_registered_raster: true
+  write_geojson: true
+  write_report: true
+  interpolation: cubic
+quality_gates:
+  min_inliers: 30
+  min_inlier_ratio: 0.20
+  max_rmse_px: null
+  verify_terrain_overlap: true
+  min_coarse_ncc: 0.15
+  min_coarse_inliers: 3

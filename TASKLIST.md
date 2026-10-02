@@ -67,7 +67,7 @@ Submit exactly one task block at a time to Antigravity IDE, beginning with Task 
 
 **Acceptance checks:** ORB works; SIFT works or fails actionably; no-keypoint cases do not crash.
 
-### [ ] Task 07 — Descriptor matching
+### [x] Task 07 — Descriptor matching
 **Depends on:** 06
 
 **Prompt to paste:**

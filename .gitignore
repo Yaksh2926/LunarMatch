@@ -1,4 +1,5 @@
 /data/
+sample_data/real/
 outputs/*
 !outputs/.gitkeep
 .venv/
@@ -14,6 +15,8 @@ build/
 *.egg-info/
 *.tif
 *.tiff
+!sample_data/presets/*.tif
+!sample_data/presets/*.tiff
 *.cub
 *.img
 *.jp2

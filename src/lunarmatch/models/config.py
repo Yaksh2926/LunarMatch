@@ -40,6 +40,9 @@ class PreprocessConfig(BaseConfigModel):
     )
     clahe_clip_limit: float = Field(default=2.0, gt=0, description="CLAHE clip limit.")
     denoise_sigma: float = Field(default=0.8, ge=0, description="Gaussian denoise sigma (0 to disable).")
+    allow_illumination_correction: bool = Field(
+        default=False, description="Enable sun-angle illumination shadow offset correction."
+    )
 
     @field_validator("percentile_clip")
     @classmethod
@@ -53,7 +56,11 @@ class PreprocessConfig(BaseConfigModel):
 
 
 class PyramidConfig(BaseConfigModel):
+    scale_aware_matching: bool = Field(default=False, description="Enable multi-scale resolution-matched matching loop.")
     metadata_scale_prior: bool = Field(default=True, description="Use raster pixel scales as scale prior.")
+    metadata_scale_uncertainty_octaves: float = Field(
+        default=1.0, ge=0.0, description="Log2 scale search range around prior when metadata is available."
+    )
     log2_scale_min: float = Field(default=-4.0, description="Min log2 scale search level.")
     log2_scale_max: float = Field(default=4.0, description="Max log2 scale search level.")
     levels_per_octave: int = Field(default=2, ge=1, description="Pyramid levels per octave.")
@@ -68,7 +75,9 @@ class PyramidConfig(BaseConfigModel):
 
 
 class FeaturesConfig(BaseConfigModel):
-    backend: Literal["sift", "orb", "learned_lightglue"] = Field(default="sift", description="Feature extraction backend.")
+    backend: Literal["sift", "orb", "learned_lightglue", "learned_loftr"] = Field(
+        default="sift", description="Feature extraction backend."
+    )
     max_keypoints: int = Field(default=30000, gt=0, description="Max keypoints to extract.")
     tile_size: int = Field(default=2048, gt=0, description="Tile dimension in pixels.")
     tile_overlap: int = Field(default=128, ge=0, description="Overlap between tiles in pixels.")
@@ -84,6 +93,9 @@ class FeaturesConfig(BaseConfigModel):
 
 
 class MatchingConfig(BaseConfigModel):
+    backend: Literal["classical", "learned_loftr", "learned_lightglue", "hybrid"] = Field(
+        default="classical", description="Matcher algorithm backend (classical SIFT/ORB, learned LoFTR/LightGlue, or hybrid)."
+    )
     ratio_threshold: float = Field(default=0.80, gt=0.0, le=1.0, description="Lowe's ratio test threshold.")
     mutual: bool = Field(default=True, description="Enforce mutual nearest neighbors.")
     max_descriptor_distance: float | None = Field(
@@ -103,6 +115,9 @@ class GeometryConfig(BaseConfigModel):
     max_iterations: int = Field(default=10000, gt=0, description="Max RANSAC iterations.")
     allowed_scale: tuple[float, float] = Field(
         default=(0.01, 100.0), description="Allowed scale factor range [min_scale, max_scale]."
+    )
+    allow_reflection: bool = Field(
+        default=False, description="Allow mirrored reflection transforms (negative determinant)."
     )
 
     @field_validator("allowed_scale")
@@ -149,6 +164,21 @@ class QualityGatesConfig(BaseConfigModel):
     min_inliers: int = Field(default=30, ge=0, description="Min inlier match count required.")
     min_inlier_ratio: float = Field(default=0.20, ge=0.0, le=1.0, description="Min inlier ratio required.")
     max_rmse_px: float | None = Field(default=None, ge=0.0, description="Max RMSE threshold in pixels.")
+    min_occupied_grid_fraction: float = Field(
+        default=0.15, ge=0.0, le=1.0, description="Min occupied grid fraction for spatial coverage gate."
+    )
+    min_convex_hull_coverage: float = Field(
+        default=0.05, ge=0.0, le=1.0, description="Min convex hull coverage fraction for spatial coverage gate."
+    )
+    verify_terrain_overlap: bool = Field(
+        default=True, description="Enable fast coarse terrain validation."
+    )
+    min_coarse_ncc: float = Field(
+        default=0.15, description="Min peak NCC for coarse overlap validation."
+    )
+    min_coarse_inliers: int = Field(
+        default=3, ge=0, description="Min SIFT/ORB inliers for coarse overlap validation."
+    )
 
 
 class PerformanceConfig(BaseConfigModel):

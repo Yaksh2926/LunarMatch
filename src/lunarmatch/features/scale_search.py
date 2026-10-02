@@ -14,7 +14,7 @@ def generate_scale_hypotheses(
 ) -> list[float]:
     """Generate deterministic scale-ratio hypotheses between source and reference rasters.
 
-    Scale ratio s = (reference_pixel_scale) / (source_pixel_scale), mapping source coords to reference.
+    Scale ratio s = (source_pixel_scale) / (reference_pixel_scale), mapping source coords to reference.
 
     Args:
         source_scale_m: Optional source raster pixel scale in meters/pixel.
@@ -38,13 +38,15 @@ def generate_scale_hypotheses(
 
     if use_metadata_prior:
         assert source_scale_m is not None and reference_scale_m is not None
-        prior_ratio = float(reference_scale_m) / float(source_scale_m)
+        prior_ratio = float(source_scale_m) / float(reference_scale_m)
+        min_exp = -float(cfg.metadata_scale_uncertainty_octaves)
+        max_exp = float(cfg.metadata_scale_uncertainty_octaves)
     else:
         prior_ratio = 1.0
+        min_exp = float(cfg.log2_scale_min)
+        max_exp = float(cfg.log2_scale_max)
 
     steps_per_octave = max(1, cfg.levels_per_octave)
-    min_exp = float(cfg.log2_scale_min)
-    max_exp = float(cfg.log2_scale_max)
 
     # Number of steps
     num_steps = round((max_exp - min_exp) * steps_per_octave) + 1

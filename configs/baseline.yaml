@@ -13,7 +13,9 @@ preprocess:
   clahe_clip_limit: 2.0
   denoise_sigma: 0.8
 pyramid:
+  scale_aware_matching: false
   metadata_scale_prior: true
+  metadata_scale_uncertainty_octaves: 1.0
   log2_scale_min: -4
   log2_scale_max: 4
   levels_per_octave: 2
@@ -33,6 +35,7 @@ geometry:
   confidence: 0.999
   max_iterations: 10000
   allowed_scale: [0.01, 100.0]
+  allow_reflection: false
 coverage:
   grid_rows: 8
   grid_cols: 8
@@ -54,3 +57,6 @@ quality_gates:
   min_inliers: 30
   min_inlier_ratio: 0.20
   max_rmse_px: null
+  verify_terrain_overlap: true
+  min_coarse_ncc: 0.15
+  min_coarse_inliers: 3
