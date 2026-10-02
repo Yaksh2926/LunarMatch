@@ -1,43 +1,36 @@
-# Multi-stage lightweight Dockerfile for LunarMatch Web Application
-FROM python:3.12-slim AS builder
+# Production Dockerfile for LunarMatch Web Application
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV and GDAL/rasterio
+# Install essential system dependencies for GDAL/rasterio and image processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libgl1 \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy build manifest and project files
 COPY pyproject.toml README.md ./
-COPY src ./src
-
-# Install package wheels into isolated environment
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    python -m pip install --no-cache-dir --prefix=/install .[geo,report]
-
-FROM python:3.12-slim AS runner
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /install /usr/local
 COPY src ./src
 COPY sample_data ./sample_data
 COPY configs ./configs
 
-# Expose default web server port
+# Upgrade pip and install package with geo and report extras
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir .[geo,report]
+
+# Expose port and configure environment
 EXPOSE 8000
 ENV PORT=8000
+ENV HOST=0.0.0.0
+ENV PYTHONUNBUFFERED=1
 
-# Set non-root user for security
-RUN useradd -m -u 1000 lunaruser && chown -R lunaruser:lunaruser /app
+# Create and switch to non-root user
+RUN useradd -m -u 1000 lunaruser && \
+    mkdir -p /app/outputs && \
+    chown -R lunaruser:lunaruser /app
 USER lunaruser
 
-ENTRYPOINT ["lunarmatch"]
-CMD ["serve", "--host", "0.0.0.0"]
+# Start web application
+CMD ["python", "-m", "lunarmatch.web.server"]

@@ -1,10 +1,12 @@
 services:
   - type: web
     name: lunarmatch
-    env: docker
+    runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /api/status
     envVars:
       - key: PORT
         value: 8000
+      - key: HOST
+        value: 0.0.0.0

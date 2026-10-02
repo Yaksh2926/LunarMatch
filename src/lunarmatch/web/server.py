@@ -323,11 +323,17 @@ class LunarMatchRequestHandler(SimpleHTTPRequestHandler):
         ]
 
 
-def run_server(port: int = 8000, host: str = "127.0.0.1") -> None:
+def run_server(port: int | None = None, host: str | None = None) -> None:
     """Launch the LunarMatch ThreadingHTTPServer."""
+    import os
+    if port is None:
+        port = int(os.getenv("PORT", "8000"))
+    if host is None:
+        host = os.getenv("HOST", "0.0.0.0")
+
     server_address = (host, port)
     httpd = ThreadingHTTPServer(server_address, LunarMatchRequestHandler)
-    print(f"\n[LunarMatch] Server active at http://localhost:{port}")
+    print(f"\n[LunarMatch] Server active at http://{host}:{port}")
     print("[LunarMatch] Press Ctrl+C to stop the server.\n")
     try:
         httpd.serve_forever()
@@ -337,11 +343,12 @@ def run_server(port: int = 8000, host: str = "127.0.0.1") -> None:
 
 
 if __name__ == "__main__":
+    import os
     import sys
-    port_arg = 8000
+    port_arg = int(os.getenv("PORT", "8000"))
     if len(sys.argv) > 1:
         try:
             port_arg = int(sys.argv[1])
         except ValueError:
             pass
-    run_server(port=port_arg)
+    run_server(port=port_arg, host="0.0.0.0")

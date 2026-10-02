@@ -1,0 +1,16 @@
+# LunarMatch Production Dependencies for Native Cloud Deployments
+numpy>=1.26
+scipy>=1.11
+opencv-python-headless>=4.8
+scikit-image>=0.22
+pydantic>=2.5
+PyYAML>=6.0
+typer>=0.12
+rich>=13.7
+tifffile>=2024.2
+rasterio>=1.3
+shapely>=2.0
+pyproj>=3.6
+jinja2>=3.1
+matplotlib>=3.8
+-e .
